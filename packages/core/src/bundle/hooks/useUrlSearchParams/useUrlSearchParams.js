@@ -80,7 +80,7 @@ export const useUrlSearchParams = (params) => {
       return getParsedUrlSearchParams(new URLSearchParams(searchParams));
     }
     if (searchParams instanceof URLSearchParams) {
-      return Array.from(searchParams.entries()).reduce((acc, [key, value]) => {
+      return [...searchParams.entries()].reduce((acc, [key, value]) => {
         acc[key] = deserializer(value);
         return acc;
       }, {});
@@ -90,12 +90,10 @@ export const useUrlSearchParams = (params) => {
   const [value, setValue] = useState(() => {
     if (typeof window === 'undefined') return initialValue ?? {};
     const urlSearchParams = getUrlSearchParams(mode);
-    const value = {
+    return {
       ...(initialValue && getParsedUrlSearchParams(initialValue)),
       ...getParsedUrlSearchParams(urlSearchParams)
     };
-    setUrlSearchParams(mode, value, writeMode);
-    return value;
   });
   const set = (params, options) => {
     const searchParams = setUrlSearchParams(
@@ -108,7 +106,10 @@ export const useUrlSearchParams = (params) => {
   useEffect(() => {
     const onParamsChange = () => {
       const searchParams = getUrlSearchParams(mode);
-      setValue(getParsedUrlSearchParams(searchParams));
+      setValue({
+        ...(initialValue && getParsedUrlSearchParams(initialValue)),
+        ...getParsedUrlSearchParams(searchParams)
+      });
     };
     window.addEventListener(URL_SEARCH_PARAMS_EVENT, onParamsChange);
     window.addEventListener('popstate', onParamsChange);

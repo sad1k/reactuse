@@ -155,7 +155,7 @@ export const useUrlSearchParams = (<Value extends UrlParams>(
     }
 
     if (searchParams instanceof URLSearchParams) {
-      return Array.from(searchParams.entries()).reduce(
+      return [...searchParams.entries()].reduce(
         (acc, [key, value]) => {
           acc[key] = deserializer(value);
           return acc;
@@ -171,14 +171,10 @@ export const useUrlSearchParams = (<Value extends UrlParams>(
     if (typeof window === 'undefined') return (initialValue ?? {}) as Value;
 
     const urlSearchParams = getUrlSearchParams(mode);
-    const value = {
+    return {
       ...(initialValue && getParsedUrlSearchParams(initialValue)),
       ...getParsedUrlSearchParams(urlSearchParams)
     } as Value;
-
-    setUrlSearchParams(mode, value, writeMode);
-
-    return value;
   });
 
   const set = (params: Partial<Value>, options?: UseUrlSearchParamsSetOptions) => {
@@ -193,7 +189,10 @@ export const useUrlSearchParams = (<Value extends UrlParams>(
   useEffect(() => {
     const onParamsChange = () => {
       const searchParams = getUrlSearchParams(mode);
-      setValue(getParsedUrlSearchParams(searchParams) as Value);
+      setValue({
+        ...(initialValue && getParsedUrlSearchParams(initialValue)),
+        ...getParsedUrlSearchParams(searchParams)
+      } as Value);
     };
 
     window.addEventListener(URL_SEARCH_PARAMS_EVENT, onParamsChange);
